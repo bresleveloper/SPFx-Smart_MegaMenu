@@ -1,4 +1,4 @@
-# iai-nav-spfx
+# Smart MegaMenu for SPO
 
 ## Summary
 
