@@ -46,7 +46,8 @@ export default class TopNavApplicationCustomizer
 
         this.getTermSetAsTree().then((tree)=>{
           console.log('getTermSetAsTree finish (then)', tree);
-
+          //switch mega-type
+          this.buildHtmlBlue(tree);
         });
       })
     }, /*  */ ()=>{
@@ -67,18 +68,8 @@ export default class TopNavApplicationCustomizer
     })
   }
 
-  //protected onInit(): Promise<void> {
-  //   window["megaTopNav"] = {
-  //     getTermSet:this.getTermSet.bind(this),
-  //     extention:this,
-  //     getTerms:this.getTermSet.bind(this),
-  //     getTermSetAsTree:this.getTermSetAsTree.bind(this)
-  //   };
-//
-  //  let guid:SP.Guid = new SP.Guid('f408eaa2-df1e-4d84-af6a-9d256d21b8fa');
-  //  this.getTermsInit(guid);
-  //   Log.info(LOG_SOURCE, `Initialized ${strings.Title}`);
-  //   /*now catch this and insert navigation*/
+  buildHtmlBlue(tree){
+      //   /*now catch this and insert navigation*/
   //   let topPlaceholder: PlaceholderContent = this.context.placeholderProvider.tryCreateContent(PlaceholderName.Top);
   //   if (topPlaceholder) {
   //     topPlaceholder.domElement.innerHTML = `<div class="${styles.app}">
@@ -86,11 +77,7 @@ export default class TopNavApplicationCustomizer
   //                   <i class="ms-Icon ms-Icon--Info" aria-hidden="true"></i>&nbsp; ${escape(HEADER_TEXT)}
   //                 </div>
   //               </div>`;
-  //   }
-////
-////
-  //   return Promise.resolve();
-  //}
+  }
 
   loadScripts():Promise<void>{
     console.log('SmartMegaMenu - loadScripts')
