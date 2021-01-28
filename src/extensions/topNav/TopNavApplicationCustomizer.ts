@@ -28,71 +28,21 @@ export interface ITopNavApplicationCustomizerProperties {
 export default class TopNavApplicationCustomizer
   extends BaseApplicationCustomizer<ITopNavApplicationCustomizerProperties> {
 
-  public getTermSet(){
-    let siteColUrl= this.context.pageContext.site.absoluteUrl;
-
-  }
-
-  public getTermSetAsTree(terms: SP.Taxonomy.TermCollection){
-
-  }
-
-
-
-
   @override
   protected onInit(): Promise<void> {/**replace func it to on get terms init init */
-    console.log('on getTermsInit')
-    let siteColUrl= this.context.pageContext.site.absoluteUrl;
-    SPComponentLoader.loadScript(siteColUrl + '/_layouts/15/init.js', {
-        globalExportsName: '$_global_init'
-      })
-        .then((): Promise<{}> => {
-          return SPComponentLoader.loadScript(siteColUrl + '/_layouts/15/MicrosoftAjax.js', {
-            globalExportsName: 'Sys'
-          });
-        })
-        .then((): Promise<{}> => {
-          return SPComponentLoader.loadScript(siteColUrl + '/_layouts/15/SP.Runtime.js', {
-            globalExportsName: 'SP'
-          });
-        })
-        .then((): Promise<{}> => {
-          return SPComponentLoader.loadScript(siteColUrl + '/_layouts/15/SP.js', {
-            globalExportsName: 'SP'
-          });
-        })
-        .then((): Promise<{}> => {
-          return SPComponentLoader.loadScript(siteColUrl + '/_layouts/15/SP.taxonomy.js', {
-            globalExportsName: 'SP'
-          });
-        })
-        .then((): void => {
-            let spContext: SP.ClientContext =new SP.ClientContext(siteColUrl);
-            let taxSession =  SP.Taxonomy.TaxonomySession.getTaxonomySession(spContext);
-            console.log("taxonomy session ", taxSession)
-            let termStore  = taxSession.getDefaultSiteCollectionTermStore();
+    console.log('SmartMegaMenu onInit 1.0')
 
-            let guid:SP.Guid = new SP.Guid('f408eaa2-df1e-4d84-af6a-9d256d21b8fa');
-            let termSet = termStore.getTermSet(guid);
-            let terms = termSet.getAllTerms();
-            console.log('this final terms',terms);
-            console.log('send to tree');
-            //this.getTermSetAsTree(terms);
-            spContext.load(terms);
-            spContext.executeQueryAsync( ()=> {
-            var termsEnum = terms.getEnumerator();
-            let termDepartment:any[]=[];
-            while (termsEnum.moveNext()) {
-              var spTerm = termsEnum.get_current();
-              termDepartment.push({label:spTerm.get_name(),value:spTerm.get_name(), id:spTerm.get_id()});
-            }
+    this.loadScripts().then(()=>{
+      console.log('loadScripts finish (then)');
 
-             window['termDepartment']= termDepartment;
-             console.log('window[tDep] ', window['termDepartment']);
-            });
 
-          });
+
+
+      this.getNavigationTerms().then(()=>{
+        console.log('getNavigationTerms finish (then)');
+
+      });
+    })
 
     return super.onInit();
   }
@@ -121,4 +71,118 @@ export default class TopNavApplicationCustomizer
 ////
   //   return Promise.resolve();
   //}
+
+  loadScripts():Promise<void>{
+    console.log('SmartMegaMenu - loadScripts')
+    let siteColUrl= this.context.pageContext.site.absoluteUrl;
+    return new Promise<void>((resolve_loadScripts, reject) => {
+
+      SPComponentLoader.loadScript(siteColUrl + '/_layouts/15/init.js', {
+          globalExportsName: '$_global_init'
+        })
+          .then((): Promise<{}> => {
+            return SPComponentLoader.loadScript(siteColUrl + '/_layouts/15/MicrosoftAjax.js', {
+              globalExportsName: 'Sys'
+            });
+          })
+          .then((): Promise<{}> => {
+            return SPComponentLoader.loadScript(siteColUrl + '/_layouts/15/SP.Runtime.js', {
+              globalExportsName: 'SP'
+            });
+          })
+          .then((): Promise<{}> => {
+            return SPComponentLoader.loadScript(siteColUrl + '/_layouts/15/SP.js', {
+              globalExportsName: 'SP'
+            });
+          })
+          .then((): Promise<{}> => {
+            return SPComponentLoader.loadScript(siteColUrl + '/_layouts/15/SP.publishing.js', {
+              globalExportsName: 'SP'
+            });
+          })          
+          .then((): Promise<{}> => {
+            return SPComponentLoader.loadScript(siteColUrl + '/_layouts/15/SP.requestexecutor.js', {
+              globalExportsName: 'SP'
+            });
+          })
+          .then((): Promise<{}> => {
+            return SPComponentLoader.loadScript(siteColUrl + '/_layouts/15/SP.taxonomy.js', {
+              globalExportsName: 'SP'
+            });
+          })
+          .then(():void => resolve_loadScripts());
+    });
+  }
+
+
+  getNavigationTerms():Promise<{}>{
+    console.log('SmartMegaMenu - getNavigationTerms')
+    let myPromise = new Promise<{}>((resolve, reject) => {
+
+      let siteColUrl = this.context.pageContext.site.absoluteUrl;
+      let context: SP.ClientContext = new SP.ClientContext(siteColUrl);
+      let factory = new SP.ProxyWebRequestExecutorFactory(siteColUrl);//appWebURL
+      context.set_webRequestExecutorFactory(factory);
+      let appContextSite = new SP.AppContextSite(context, siteColUrl);// $('#txtSharePointUrl').val());
+      let hostWeb = appContextSite.get_web();
+      let taxonomySession = SP.Taxonomy.TaxonomySession.getTaxonomySession(context);
+
+
+      let webNavSettings = new SP.Publishing.Navigation.WebNavigationSettings(context, hostWeb);
+      context.load(webNavSettings.get_currentNavigation())
+      let currentNavigationSettings = webNavSettings.get_currentNavigation();
+      context.load(currentNavigationSettings);
+
+      context.executeQueryAsync( ()=> {
+
+        console.log('SmartMegaMenu - getNavigationTerms after query')
+
+        let termStoreId = currentNavigationSettings.get_termStoreId();
+        let termSetId = currentNavigationSettings.get_termSetId();
+        let termStore = taxonomySession.get_termStores().getById(termStoreId);
+        let termSet = termStore.getTermSet(termSetId);
+
+        let navTermSet = SP.Publishing.Navigation.NavigationTermSet.getAsResolvedByWeb(context, termSet, hostWeb, 'CurrentNavigationSwitchableProvider');
+        context.load(navTermSet);
+
+        navTermSet = SP.Publishing.Navigation.NavigationTermSet.getAsResolvedByWeb(context, termSet, context.get_web(), 'GlobalNavigationTaxonomyProvider');
+
+        let terms = navTermSet.get_terms();
+        context.load(terms, 'Include(Id, Title, TargetUrl, FriendlyUrlSegment, Terms)');
+
+        let allTerms = navTermSet.getAllTerms();
+        context.load(allTerms, 'Include(Id, Title, TargetUrl, FriendlyUrlSegment, Terms)');
+
+        context.executeQueryAsync(function (sender, args) {
+          console.log('SmartMegaMenu - getNavigationTerms after nav query')
+
+          let termsArr = [];
+          console.log('SmartMegaMenu - getNavigationTerms allTerms : ',allTerms);
+          let termsEnum = terms.getEnumerator();
+          console.log('SmartMegaMenu loop navTerms');
+  
+          while (termsEnum.moveNext()) {
+            //for the current term stub, get all the properties from the fully loaded getAllTerms object
+            let currentTerm = termsEnum.get_current()
+            console.log('SmartMegaMenu currentTerm', currentTerm);
+            window['x'] = currentTerm;
+  
+            let newTerm = {
+              "id": currentTerm.get_id().toString(),
+              "name": currentTerm.get_title().get_value(),
+              "href": currentTerm.get_targetUrl().get_value(),
+              "childnodes": []
+            }
+
+            termsArr.push(newTerm)
+          }
+        });
+
+      });
+    });
+
+    return myPromise;
+  }
+
+
 }
