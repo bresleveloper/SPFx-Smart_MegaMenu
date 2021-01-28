@@ -1,7 +1,7 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
   "solution": {
-    "name": "iai-nav-spfx-client-side-solution",
+    "name": "SPFx-Smart-MegaMenu-client-side-solution",
     "id": "ced6b535-c2f8-4dbd-beeb-7dfbe1930e07",
     "version": "1.0.0.0",
     "includeClientSideAssets": true,
@@ -29,6 +29,6 @@
     ]
   },
   "paths": {
-    "zippedPackage": "solution/iai-nav-spfx.sppkg"
+    "zippedPackage": "solution/SPFx-Smart-MegaMenu.sppkg"
   }
 }
