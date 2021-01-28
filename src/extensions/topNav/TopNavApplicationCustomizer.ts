@@ -28,22 +28,26 @@ export interface ITopNavApplicationCustomizerProperties {
 export default class TopNavApplicationCustomizer
   extends BaseApplicationCustomizer<ITopNavApplicationCustomizerProperties> {
 
+  //guid:SP.Guid = new SP.Guid('f408eaa2-df1e-4d84-af6a-9d256d21b8fa');
+  TSguid:string = 'f408eaa2-df1e-4d84-af6a-9d256d21b8fa';
+  masterTreesDictionary:{} = {};
+  trees = [];
+  settings:{}={};
+
   @override
   protected onInit(): Promise<void> {/**replace func it to on get terms init init */
     console.log('SmartMegaMenu onInit 1.0')
 
+    //this.getSettings().then(()=>{
+
     this.loadScripts().then(()=>{
       console.log('loadScripts finish (then)');
 
-
-
-
-      this.getNavigationTerms().then(()=>{
-        console.log('getNavigationTerms finish (then)');
+      this.getTermSetAsTree().then((tree)=>{
+        console.log('getTermSetAsTree finish (then)', tree);
 
       });
     })
-
     return super.onInit();
   }
 
@@ -114,74 +118,150 @@ export default class TopNavApplicationCustomizer
     });
   }
 
-
-  getNavigationTerms():Promise<{}>{
+  getTerms():Promise<SP.Taxonomy.TermCollection>{
     console.log('SmartMegaMenu - getNavigationTerms')
-    let myPromise = new Promise<{}>((resolve, reject) => {
+    let myPromise = new Promise<SP.Taxonomy.TermCollection>((resolve, reject) => {
 
-      let siteColUrl = this.context.pageContext.site.absoluteUrl;
-      let context: SP.ClientContext = new SP.ClientContext(siteColUrl);
-      let factory = new SP.ProxyWebRequestExecutorFactory(siteColUrl);//appWebURL
-      context.set_webRequestExecutorFactory(factory);
-      let appContextSite = new SP.AppContextSite(context, siteColUrl);// $('#txtSharePointUrl').val());
-      let hostWeb = appContextSite.get_web();
-      let taxonomySession = SP.Taxonomy.TaxonomySession.getTaxonomySession(context);
-
-
-      let webNavSettings = new SP.Publishing.Navigation.WebNavigationSettings(context, hostWeb);
-      context.load(webNavSettings.get_currentNavigation())
-      let currentNavigationSettings = webNavSettings.get_currentNavigation();
-      context.load(currentNavigationSettings);
-
-      context.executeQueryAsync( ()=> {
-
-        console.log('SmartMegaMenu - getNavigationTerms after query')
-
-        let termStoreId = currentNavigationSettings.get_termStoreId();
-        let termSetId = currentNavigationSettings.get_termSetId();
-        let termStore = taxonomySession.get_termStores().getById(termStoreId);
-        let termSet = termStore.getTermSet(termSetId);
-
-        let navTermSet = SP.Publishing.Navigation.NavigationTermSet.getAsResolvedByWeb(context, termSet, hostWeb, 'CurrentNavigationSwitchableProvider');
-        context.load(navTermSet);
-
-        navTermSet = SP.Publishing.Navigation.NavigationTermSet.getAsResolvedByWeb(context, termSet, context.get_web(), 'GlobalNavigationTaxonomyProvider');
-
-        let terms = navTermSet.get_terms();
-        context.load(terms, 'Include(Id, Title, TargetUrl, FriendlyUrlSegment, Terms)');
-
-        let allTerms = navTermSet.getAllTerms();
-        context.load(allTerms, 'Include(Id, Title, TargetUrl, FriendlyUrlSegment, Terms)');
-
-        context.executeQueryAsync(function (sender, args) {
-          console.log('SmartMegaMenu - getNavigationTerms after nav query')
-
-          let termsArr = [];
-          console.log('SmartMegaMenu - getNavigationTerms allTerms : ',allTerms);
-          let termsEnum = terms.getEnumerator();
-          console.log('SmartMegaMenu loop navTerms');
-  
-          while (termsEnum.moveNext()) {
-            //for the current term stub, get all the properties from the fully loaded getAllTerms object
-            let currentTerm = termsEnum.get_current()
-            console.log('SmartMegaMenu currentTerm', currentTerm);
-            window['x'] = currentTerm;
-  
-            let newTerm = {
-              "id": currentTerm.get_id().toString(),
-              "name": currentTerm.get_title().get_value(),
-              "href": currentTerm.get_targetUrl().get_value(),
-              "childnodes": []
-            }
-
-            termsArr.push(newTerm)
-          }
-        });
-
-      });
+      let siteColUrl= this.context.pageContext.site.absoluteUrl;
+      let spContext: SP.ClientContext = new SP.ClientContext(siteColUrl);
+      let taxSession =  SP.Taxonomy.TaxonomySession.getTaxonomySession(spContext);
+      let termStore  = taxSession.getDefaultSiteCollectionTermStore();
+      let guid:SP.Guid = new SP.Guid(this.TSguid);
+      let termSet = termStore.getTermSet(guid);
+      let terms = termSet.getAllTerms();
+      spContext.load(terms);
+      spContext.executeQueryAsync( ()=> {
+        resolve(terms);
+      })
     });
-
     return myPromise;
+  }
+
+  getTermSetAsTree():Promise<{}> {
+    return new Promise<{}>((resolve) => {
+      this.getTerms().then( (terms) => {
+          let termsEnumerator = terms.getEnumerator(),
+              tree = {
+                  term: terms,
+                  children: []
+              };
+          //ariel
+          let termsDict = {}
+
+          // Loop through each term
+          while (termsEnumerator.moveNext()) {
+              let currentTerm = termsEnumerator.get_current();
+              let currentTermPath = currentTerm.get_pathOfTerm().split(';');
+              let children = tree.children;
+
+              // Loop through each part of the path
+              for (let i = 0; i < currentTermPath.length; i++) {
+                  let foundNode = false;
+
+                  let j;
+                  for (j = 0; j < children.length; j++) {
+                      if (children[j].name === currentTermPath[i]) {
+                          foundNode = true;
+                          break;
+                      }
+                  }
+
+                  // Select the node, otherwise create a new one
+                  let term = foundNode ? children[j] : { name: currentTermPath[i], children: [] };
+
+                  // If we're a child element, add the term properties
+                  if (i === currentTermPath.length - 1) {
+                      term.term = currentTerm;
+                      term.title = currentTerm.get_name();
+                      term.guid = currentTerm.get_id().toString();
+                      term.description = currentTerm.get_description();
+                      term.customProperties = currentTerm.get_customProperties();
+                      term.localCustomProperties = currentTerm.get_localCustomProperties();
+
+                      term.url = '';
+                      if (term.localCustomProperties && term.localCustomProperties.url) {
+                        term.url = term.localCustomProperties.url
+                      }
+                      if (term.localCustomProperties && term.localCustomProperties._Sys_Nav_SimpleLinkUrl) {
+                        term.url = term.localCustomProperties._Sys_Nav_SimpleLinkUrl
+                      }
+
+                  }
+
+                  //ariel
+                  termsDict[term.guid] = term;
+                  this.masterTreesDictionary[term.guid] = term;
+
+                  // If the node did exist, let's look there next iteration
+                  if (foundNode) {
+                      children = term.children;
+                  }
+                  // If the segment of path does not exist, create it
+                  else {
+                      children.push(term);
+
+                      // Reset the children pointer to add there next iteration
+                      if (i !== currentTermPath.length - 1) {
+                          children = term.children;
+                      }
+                  }
+              }
+          }
+
+          tree = this.sortTermsFromTree(tree);
+          this.trees.push({tree:tree, dict:termsDict})
+
+          resolve(tree);
+      });
+  })
+}
+
+  sortTermsFromTree(tree):any {
+    // Check to see if the get_customSortOrder function is defined. If the term is actually a term collection,
+    // there is nothing to sort.
+    if (tree.children.length && tree.term.get_customSortOrder) {
+        let sortOrder = null;
+
+        if (tree.term.get_customSortOrder()) {
+            sortOrder = tree.term.get_customSortOrder();
+        }
+
+        // If not null, the custom sort order is a string of GUIDs, delimited by a :
+        if (sortOrder) {
+            sortOrder = sortOrder.split(':');
+
+            tree.children.sort(function (a, b) {
+                let indexA = sortOrder.indexOf(a.guid);
+                let indexB = sortOrder.indexOf(b.guid);
+
+                if (indexA > indexB) {
+                    return 1;
+                } else if (indexA < indexB) {
+                    return -1;
+                }
+
+                return 0;
+            });
+        }
+        // If null, terms are just sorted alphabetically
+        else {
+            tree.children.sort(function (a, b) {
+                if (a.title > b.title) {
+                    return 1;
+                } else if (a.title < b.title) {
+                    return -1;
+                }
+
+                return 0;
+            });
+        }
+    }
+
+    for (let i = 0; i < tree.children.length; i++) {
+        tree.children[i] = this.sortTermsFromTree(tree.children[i]);
+    }
+
+    return tree;
   }
 
 
