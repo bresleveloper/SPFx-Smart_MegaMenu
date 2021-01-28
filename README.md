@@ -16,5 +16,5 @@ Your MUST
 
 You may choose between `Simple` and `EndlessExpand` in the `MegaType` (TODO...)
 
-![How List Looks](https://github.com/bresleveloper/SPFx-Smart_MegaMenu/blob/master/readmeImage.jpg?raw=true)
+![How List Looks](https://github.com/bresleveloper/SPFx-Smart_MegaMenu/blob/master/readmeImage.png?raw=true)
 
