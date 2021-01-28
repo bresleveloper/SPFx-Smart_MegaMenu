@@ -14,7 +14,9 @@ Your MUST
 * create a termset
 * add the guid to the `TermSetGuid` row @`Value` column
 
-You may choose between `Simple` and `EndlessExpand` in the `MegaType` (TODO...)
+#### other settings
+* You may choose between `Simple` and `EndlessExpand` in the `MegaType` (TODO...)
+* You may set the `Direction` row to `rtl` or `ltr` values to override the `direction` css value
 
 ![How List Looks](https://github.com/bresleveloper/SPFx-Smart_MegaMenu/blob/master/readmeImage.png?raw=true)
 

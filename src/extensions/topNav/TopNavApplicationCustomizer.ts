@@ -38,17 +38,33 @@ export default class TopNavApplicationCustomizer
   protected onInit(): Promise<void> {/**replace func it to on get terms init init */
     console.log('SmartMegaMenu onInit 1.0')
 
-    //this.getSettings().then(()=>{
+    this.getSettings().then(()=>{
+      console.log('getSettings resolved');
 
-    this.loadScripts().then(()=>{
-      console.log('loadScripts finish (then)');
+      this.loadScripts().then(()=>{
+        console.log('loadScripts finish (then)');
 
-      this.getTermSetAsTree().then((tree)=>{
-        console.log('getTermSetAsTree finish (then)', tree);
+        this.getTermSetAsTree().then((tree)=>{
+          console.log('getTermSetAsTree finish (then)', tree);
 
-      });
+        });
+      })
+    }, /*  */ ()=>{
+      console.log('getSettings reject');
     })
     return super.onInit();
+  }
+
+  getSettings():Promise<void>{
+    return new Promise<void>((resolve, reject)=>{
+      //get list
+      //list ok
+      resolve();
+
+      //list not ok
+      reject();
+      console.error("i dont have a guid")
+    })
   }
 
   //protected onInit(): Promise<void> {
