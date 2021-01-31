@@ -1,9 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Elements xmlns="http://schemas.microsoft.com/sharepoint/">
-    <CustomAction
-        Title="TopNav"
-        Location="ClientSideExtension.ApplicationCustomizer"
-        ClientSideComponentId="407fb97c-27d3-42f5-9a29-c9540995ca2f"
-        ClientSideComponentProperties="{&quot;testMessage&quot;:&quot;Test message&quot;}">
-    </CustomAction>
+
+    <Field ID="{586FB6B9-5907-4E34-B731-B1BFB5093BAC}"
+            Name="Value"
+            DisplayName="Value"
+            Type="Text"
+            Required="FALSE"
+            Group="MegaMenuSettings SPFx Columns" />
+
+    <ContentType ID="0x0100795C72EFE15C4F9E9C60DB642174A2F1"
+            Name="MegaMenuSettings"
+            Group="MegaMenuSettings SPFx Content Types">
+        <FieldRefs>
+            <FieldRef ID="{586FB6B9-5907-4E34-B731-B1BFB5093BAC}" />
+        </FieldRefs>
+    </ContentType>
+
+    <ListInstance
+            CustomSchema="ClientSideInstance.xml"
+            FeatureId="00bfea71-de22-43b2-a848-c05709900100"
+            Title="MegaMenuSettings"
+            Description="MegaMenuSettings"
+            TemplateType="100"
+            Url="Lists/MegaMenuSettings">
+    <Data>
+    <Rows>
+      <Row>
+        <Field Name="Title">TermSetGuid</Field>
+      </Row>
+      <Row>
+        <Field Name="Title">MegaAvailTypes</Field>
+      </Row>
+      <Row>
+        <Field Name="Title">MegaType</Field>
+      </Row>
+      <Row>
+        <Field Name="Title">Direction</Field>
+      </Row>
+      <Row>
+        <Field Name="Title">DirectionOptions</Field>
+      </Row>
+
+    </Rows>
+  </Data>
+ </ListInstance>
+
 </Elements>

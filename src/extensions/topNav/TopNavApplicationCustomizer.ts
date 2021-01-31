@@ -1,12 +1,17 @@
+import styles from './AppCustomizer.module.scss';
 import { override } from '@microsoft/decorators';
 import { Guid, Log } from '@microsoft/sp-core-library';
 import {
   BaseApplicationCustomizer, PlaceholderContent, PlaceholderName, PlaceholderProvider
 } from '@microsoft/sp-application-base';
 import { Dialog } from '@microsoft/sp-dialog';
-import styles from './AppCustomizer.module.scss';
 import { escape } from '@microsoft/sp-lodash-subset';
 import { SPComponentLoader } from '@microsoft/sp-loader';
+import {
+  SPHttpClient,
+  SPHttpClientResponse
+} from '@microsoft/sp-http';
+
 
 import * as strings from 'TopNavApplicationCustomizerStrings';
 
@@ -29,13 +34,19 @@ export default class TopNavApplicationCustomizer
   extends BaseApplicationCustomizer<ITopNavApplicationCustomizerProperties> {
 
   //guid:SP.Guid = new SP.Guid('f408eaa2-df1e-4d84-af6a-9d256d21b8fa');
-  TSguid:string = 'f408eaa2-df1e-4d84-af6a-9d256d21b8fa';
-  masterTreesDictionary:{} = {};
-  trees = [];
-  settings:{}={};
+  public ajaxCounter:number = 0;
+  public MegaMenuListData:[] = [];
+  public TSguid:string = '';
+  public pageDirection:string = '';
+  public masterTreesDictionary:{} = {};
+  public trees = [];
+  public settings:{}={};
 
   @override
   protected onInit(): Promise<void> {/**replace func it to on get terms init init */
+    window['MegaMenuInfo']={
+      MegaMenuListData:this.MegaMenuListData,
+    };
     console.log('SmartMegaMenu onInit 1.0')
 
     this.getSettings().then(()=>{
@@ -45,6 +56,7 @@ export default class TopNavApplicationCustomizer
         console.log('loadScripts finish (then)');
 
         this.getTermSetAsTree().then((tree)=>{
+          window['tree'] = tree;
           console.log('getTermSetAsTree finish (then)', tree);
           //switch mega-type
           this.buildHtmlBlue(tree);
@@ -56,30 +68,90 @@ export default class TopNavApplicationCustomizer
     return super.onInit();
   }
 
-  getSettings():Promise<void>{
+  public getSettings():Promise<void>{
     return new Promise<void>((resolve, reject)=>{
-      //get list
-      //list ok
-      resolve();
+      let listname:string = 'MegaMenuSettings';
+      this.getListItems(listname).then(()=>{
+        console.log('this.MegaMenuListData : ',this.MegaMenuListData);
+        window['mmList']=this.MegaMenuListData;
+        for(let i=0;i<this.MegaMenuListData.length;i++){
+          const item = this.MegaMenuListData[i];
+          if(i==0){
+            this.TSguid = item['Value'];
+            this.TSguid = this.TSguid.trim();
+            console.log('this.TSguid '+this.TSguid);
+          }
+          if(i==4 && item['Value']!=null){
+            this.pageDirection = item['Value'];
+            console.log('this.pageDirection '+this.pageDirection);
+          }
 
+        }
+        resolve();
+      });
+      resolve();
       //list not ok
       reject();
       console.error("i dont have a guid")
-    })
+    });
   }
 
-  buildHtmlBlue(tree){
+  public buildHtmlBlue(tree:{}){
       //   /*now catch this and insert navigation*/
-  //   let topPlaceholder: PlaceholderContent = this.context.placeholderProvider.tryCreateContent(PlaceholderName.Top);
-  //   if (topPlaceholder) {
-  //     topPlaceholder.domElement.innerHTML = `<div class="${styles.app}">
-  //                 <div class="ms-bgColor-themeDark ms-fontColor-white ${styles.header}">
-  //                   <i class="ms-Icon ms-Icon--Info" aria-hidden="true"></i>&nbsp; ${escape(HEADER_TEXT)}
-  //                 </div>
-  //               </div>`;
-  }
+    let bench = tree["children"];
+    window['bench']=bench;
+    let inner:any = ``;
+    let thLevel:any = ``;
+    let fLeveltemplate = `<span class="ms-HorizontalNavItem ${styles.topNavSpan}" data-automationid="HorizontalNav-link">
+                      <a class="#CLASS# ms-HorizontalNavItem-link is-not-selected ${styles.PermanentA}" href=#HREF# onmouseover="">
+                        #NAME#
+                      </a>
+                    </span>`;
+    let sLevelTemplate = `<ul><a class=${styles.sLevelA} href="#HREF#"><li class=${styles.sLevel}>#NAME#</li></a>#MORE#</ul>`;
+    let thLevelTemplate = `<a class=${styles.thLevelA} href="#HREF#"><li class=${styles.thLevel}>#NAME#</li></a>`;
+    for(let i=0;i<bench.length;i++){
+      inner+=`<div class=${styles.wrapDiv} onmouseover="this.lastChild.style.visibility='visible';" onmouseleave="this.lastChild.style.visibility='hidden';">`;
+      if(bench[i].localCustomProperties["_Sys_Nav_SimpleLinkUrl"]){
+          inner+=fLeveltemplate.replace("#HREF#",bench[i].localCustomProperties["_Sys_Nav_SimpleLinkUrl"]).replace("#NAME#",bench[i].title);
+      }
+      else{
+        if(bench[i].url){
+          inner+=fLeveltemplate.replace("#HREF#",bench[i].url).replace("#NAME#",bench[i].title);
+        }
+        else{
+          inner+=fLeveltemplate.replace("#NAME#",bench[i].title).replace("#HREF#","#");
+        }
+      }
+      inner+=`<div class ="${styles.openDiv}" class="${String(i)}">`;
+      for(let j=0;j<bench[i]['children'].length;j++){
+        let subench = bench[i]['children'][j];
+        let sHref = subench.localCustomProperties["_Sys_Nav_SimpleLinkUrl"]?subench.localCustomProperties["_Sys_Nav_SimpleLinkUrl"]:subench.url?subench.url:"#";
+        if(subench['children']){
+          for(let h=0;h<subench['children'].length;h++){
+            let subsubench = subench['children'][h];
+            let tHref = subsubench.localCustomProperties["_Sys_Nav_SimpleLinkUrl"]?subsubench.localCustomProperties["_Sys_Nav_SimpleLinkUrl"]:subsubench.url?subsubench.url:"#";
+            thLevel+=thLevelTemplate.replace("#NAME#",subsubench.title).replace("#HREF#",tHref);
+          }
+        }
+        inner+=sLevelTemplate.replace("#NAME#",subench.title).replace("#MORE#",thLevel).replace("#HREF#",sHref);
+        thLevel=``;
+      }
+        inner+=`</div>`;
+      inner+=`</div>`;
+    }
 
-  loadScripts():Promise<void>{
+
+     let topPlaceholder: PlaceholderContent = this.context.placeholderProvider.tryCreateContent(PlaceholderName.Top);
+     if (topPlaceholder) {
+       topPlaceholder.domElement.innerHTML = `<div class="${styles.app}">
+                   <div class= "${styles.header}">
+                    ${inner}
+                   </div>
+                 </div>`;
+      }
+    }
+
+  public loadScripts():Promise<void>{
     console.log('SmartMegaMenu - loadScripts')
     let siteColUrl= this.context.pageContext.site.absoluteUrl;
     return new Promise<void>((resolve_loadScripts, reject) => {
@@ -106,7 +178,7 @@ export default class TopNavApplicationCustomizer
             return SPComponentLoader.loadScript(siteColUrl + '/_layouts/15/SP.publishing.js', {
               globalExportsName: 'SP'
             });
-          })          
+          })
           .then((): Promise<{}> => {
             return SPComponentLoader.loadScript(siteColUrl + '/_layouts/15/SP.requestexecutor.js', {
               globalExportsName: 'SP'
@@ -121,7 +193,7 @@ export default class TopNavApplicationCustomizer
     });
   }
 
-  getTerms():Promise<SP.Taxonomy.TermCollection>{
+  public getTerms():Promise<SP.Taxonomy.TermCollection>{
     console.log('SmartMegaMenu - getNavigationTerms')
     let myPromise = new Promise<SP.Taxonomy.TermCollection>((resolve, reject) => {
 
@@ -140,7 +212,7 @@ export default class TopNavApplicationCustomizer
     return myPromise;
   }
 
-  getTermSetAsTree():Promise<{}> {
+  public getTermSetAsTree():Promise<{}> {
     return new Promise<{}>((resolve) => {
       this.getTerms().then( (terms) => {
           let termsEnumerator = terms.getEnumerator(),
@@ -183,10 +255,10 @@ export default class TopNavApplicationCustomizer
 
                       term.url = '';
                       if (term.localCustomProperties && term.localCustomProperties.url) {
-                        term.url = term.localCustomProperties.url
+                        term.url = term.localCustomProperties.url;
                       }
                       if (term.localCustomProperties && term.localCustomProperties._Sys_Nav_SimpleLinkUrl) {
-                        term.url = term.localCustomProperties._Sys_Nav_SimpleLinkUrl
+                        term.url = term.localCustomProperties._Sys_Nav_SimpleLinkUrl;
                       }
 
                   }
@@ -216,10 +288,10 @@ export default class TopNavApplicationCustomizer
 
           resolve(tree);
       });
-  })
+  });
 }
 
-  sortTermsFromTree(tree):any {
+  public sortTermsFromTree(tree):any {
     // Check to see if the get_customSortOrder function is defined. If the term is actually a term collection,
     // there is nothing to sort.
     if (tree.children.length && tree.term.get_customSortOrder) {
@@ -265,6 +337,33 @@ export default class TopNavApplicationCustomizer
     }
 
     return tree;
+  }
+  public getListItems(listname:string): Promise<void> {
+    let myPromise = new Promise<void>((resolve) => {
+    console.log('asking list items for MegaMenuSettings');
+    this.ajaxCounter++;
+
+    this.context.spHttpClient.get(
+      this.context.pageContext.site.absoluteUrl +
+      `/_api/web/lists/GetByTitle('${listname}')/Items`, SPHttpClient.configurations.v1)
+      //`/_api/web/lists/GetByTitle('${listname}')/Items`, SPHttpClient.configurations.v1)
+          .then((response: SPHttpClientResponse) => {
+              response.json().then((data)=> {
+
+                  console.log('list items for', listname, data);
+                  this.ajaxCounter--;
+                  this.MegaMenuListData = data.value;
+                  if (this.ajaxCounter == 0) {
+                    resolve();
+                  }
+                  else{
+                    console.error('could not get list')
+                  }
+
+              });
+          });
+    });
+    return myPromise;
   }
 
 

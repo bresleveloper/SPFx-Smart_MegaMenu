@@ -21,9 +21,12 @@
         "version": "1.0.0.0",
         "assets": {
           "elementManifests": [
-            "elements.xml",
+            "elements.xml"
+          ],
+          "elementFiles":[
             "ClientSideInstance.xml"
           ]
+
         }
       }
     ]

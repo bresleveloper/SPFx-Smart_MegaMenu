@@ -1,23 +1,87 @@
 .app {
-  .header {
-    height: 60px;
-    text-align: center;
-    line-height: 2.5;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: goldenrod;
+  direction: rtl; /*dont forget - it shold be by table value*/
+  box-shadow: 2px 2px 2px #e8e8e8;
+  a {
+    /*color: rgb(113, 113, 113);*/
+    color: rgb(0, 72, 119);
   }
-
-  .footer {
-    height: 60px;
-    text-align: center;
-    line-height: 2.5;
-    font-weight: bold;
+  .header {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: darkgreen;
+    height: 40px;
+    padding: 0px 240px 0 240px;
+    font-weight: bold;
+    justify-content: flex-start;
+    .wrapDiv {
+      display: block;
+      max-width: 120px;
+      z-index: 9998;
+
+      .openDiv {
+        right: 0px;
+        visibility: hidden;
+        position: absolute;
+        padding: 0px 240px 0 240px;
+        min-height: 200px;
+        background-color: rgba(255, 255, 255, 0.98);
+        z-index: 9999;
+        box-shadow: 2px 2px 2px #e8e8e8;
+        display: flex;
+        flex-wrap: wrap;
+        width: -webkit-fill-available;
+        a {
+          text-decoration: none;
+        }
+        ul {
+          padding-left: 60px;
+          padding-right: 10px;
+          min-height: 110px;
+        }
+        .sLevel {
+          color: rgb(113, 113, 113);
+          list-style: none;
+          padding-bottom: 5px;
+        }
+        .thLevel {
+          padding-top: 10px;
+          color: rgb(113, 113, 113);
+          list-style: none;
+          font-weight: 300;
+        }
+        .sLevel:hover {
+          color: rgb(0, 72, 119);
+        }
+        ul:hover {
+          .sLevelA {
+            .sLevel {
+              color: rgb(0, 72, 119);
+            }
+          }
+        }
+
+        .thLevelA:hover {
+          .thLevel {
+            color: rgb(0, 72, 119);
+          }
+        }
+      }
+    }
+    .topNavSpan {
+      margin-right: 5px;
+      margin-left: 30px;
+      height: 100%;
+      .PermanentA {
+        font-family: "Segoe UI", "Segoe UI Web (West European)", "Segoe UI",
+          -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue",
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+        font-size: 16px;
+        font-weight: 400;
+        top: 20%;
+        height: 80%;
+      }
+    }
+    .wrapDiv:hover .topNavSpan {
+      border-bottom: rgb(0, 72, 119), 2px, solid;
+    }
   }
 }

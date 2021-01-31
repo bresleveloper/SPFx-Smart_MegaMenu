@@ -11,17 +11,25 @@ DOES NOT WORK WITH FRIENDLY URLS
 ### Automativally Created
 
 Your MUST
-* create a termset
-* add the guid to the `TermSetGuid` row @`Value` column
+
+- create a termset
+- add the guid to the `TermSetGuid` row @`Value` column
 
 #### other settings
-* You may choose between `Simple`, `Blue` or `EndlessExpand` in the `MegaType` (TODO...)
-* You may set the `Direction` row to `rtl` or `ltr` values to override the `direction` css value
+
+- You may choose between `Simple`, `Blue` or `EndlessExpand` in the `MegaType` (TODO...)
+- You may set the `Direction` row to `rtl` or `ltr` values to override the `direction` css value
 
 ![How List Looks](https://github.com/bresleveloper/SPFx-Smart_MegaMenu/blob/master/readmeImage.png?raw=true)
 
-
 ## RoadMap
-* `Blue` as in mockup
-* `Simple` as in FF
-* `EndlessExpand` as in OOTB teamsite
+
+- `Blue` as in mockup
+- `Simple` as in FF
+- `EndlessExpand` as in OOTB teamsite
+
+### commands
+
+`gulp build`
+`gulp bundle --ship`
+`gulp package-solution --ship`
