@@ -6,4 +6,52 @@
         ClientSideComponentId="407fb97c-27d3-42f5-9a29-c9540995ca2f"
         ClientSideComponentProperties="{&quot;testMessage&quot;:&quot;Test message&quot;}">
     </CustomAction>
+    
+    <Field ID="{E31C2271-886E-49D1-B9EB-1E7E15495C6D}"
+            Name="Value"
+            DisplayName="Value"
+            Type="Text"
+            Required="FALSE"
+            Group="MegaMenuSettings SPFx Columns" />
+
+    <ContentType ID="0x0100D45C67FCB5BB44F99558828FA245F02F"
+            Name="MegaMenuSettings"
+            Group="MegaMenuSettings SPFx Content Types">
+        <FieldRefs>
+            <FieldRef ID="{E31C2271-886E-49D1-B9EB-1E7E15495C6D}" />
+        </FieldRefs>
+    </ContentType>
+
+    <ListInstance
+            CustomSchema="listSchema.xml"
+            FeatureId="00bfea71-de22-43b2-a848-c05709900100"
+            Title="MegaMenuSettings"
+            Description="MegaMenuSettings"
+            TemplateType="100"
+            Url="Lists/MegaMenuSettings">
+      <Data>
+        <Rows>
+          <Row>
+            <Field Name="Title">TermSetGuid</Field>
+          </Row>
+          <Row>
+            <Field Name="Title">MegaAvailTypes</Field>
+            <Field Name="Value">"Simple", "EndlessExpand", "Blue"</Field>
+          </Row>
+          <Row>
+            <Field Name="Title">MegaType</Field>
+            <Field Name="Value">Blue</Field>
+          </Row>
+          <Row>
+            <Field Name="Title">Direction</Field>
+            <Field Name="Value">rtl</Field>
+          </Row>
+          <Row>
+            <Field Name="Title">DirectionOptions</Field>
+            <Field Name="Value">nothing, or "rtl" or "ltr" to override "direction" css value</Field>
+          </Row>
+
+        </Rows>
+      </Data>
+    </ListInstance>
 </Elements>

@@ -21,9 +21,12 @@
         "id": "0d931de8-487f-4e1d-9e48-55a72cd84f07",
         "version": "1.0.0.0",
         "assets": {
-          "elementManifests": [
-            "elements.xml"
-          ]
+          "elementManifests": [  
+            "elements.xml"  
+          ],  
+          "elementFiles":[  
+            "listSchema.xml"  
+          ] 
         }
       }
     ]
