@@ -44,6 +44,7 @@ export default class TopNavApplicationCustomizer
 
   @override
   protected onInit(): Promise<void> {/**replace func it to on get terms init init */
+    
     window['MegaMenuInfo']={
       MegaMenuListData:this.MegaMenuListData,
     };

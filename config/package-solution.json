@@ -5,6 +5,7 @@
     "id": "ced6b535-c2f8-4dbd-beeb-7dfbe1930e07",
     "version": "1.0.0.0",
     "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
     "isDomainIsolated": false,
     "developer": {
       "name": "",
@@ -22,11 +23,7 @@
         "assets": {
           "elementManifests": [
             "elements.xml"
-          ],
-          "elementFiles":[
-            "ClientSideInstance.xml"
           ]
-
         }
       }
     ]
