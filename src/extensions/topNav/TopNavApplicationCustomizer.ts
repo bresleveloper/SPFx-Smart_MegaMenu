@@ -6,11 +6,10 @@ import {
 } from '@microsoft/sp-application-base';
 import { Dialog } from '@microsoft/sp-dialog';
 import { escape } from '@microsoft/sp-lodash-subset';
+
 import { SPComponentLoader } from '@microsoft/sp-loader';
-import {
-  SPHttpClient,
-  SPHttpClientResponse
-} from '@microsoft/sp-http';
+
+import {SPHttpClient,SPHttpClientResponse} from '@microsoft/sp-http';
 
 
 import * as strings from 'TopNavApplicationCustomizerStrings';
@@ -34,7 +33,6 @@ export default class TopNavApplicationCustomizer
   extends BaseApplicationCustomizer<ITopNavApplicationCustomizerProperties> {
 
   //guid:SP.Guid = new SP.Guid('f408eaa2-df1e-4d84-af6a-9d256d21b8fa');
-  public ajaxCounter:number = 0;
   public MegaMenuListData:[] = [];
   public TSguid:string = '';
   public pageDirection:string = '';
@@ -79,9 +77,9 @@ export default class TopNavApplicationCustomizer
   public getSettings():Promise<void>{
     return new Promise<void>((resolve, reject)=>{
       let listname:string = 'MegaMenuSettings';
-      this.getListItems(listname).then(()=>{
-        console.log('this.MegaMenuListData : ',this.MegaMenuListData);
-        window['mmList']=this.MegaMenuListData;
+      this.getListItems(listname).then((items)=>{
+        console.log('this.MegaMenuListData : ',items);
+        window['mmList'] = this.MegaMenuListData = items;
         for(let i=0;i<this.MegaMenuListData.length;i++){
           const item = this.MegaMenuListData[i];
           if(i==0){
@@ -345,10 +343,10 @@ export default class TopNavApplicationCustomizer
 
     return tree;
   }
-  public getListItems(listname:string): Promise<void> {
-    let myPromise = new Promise<void>((resolve) => {
+
+  public getListItems(listname:string): Promise<[]> {
+    let myPromise = new Promise<[]>((resolve) => {
     console.log('asking list items for MegaMenuSettings');
-    this.ajaxCounter++;
 
     this.context.spHttpClient.get(
       this.context.pageContext.site.absoluteUrl +
@@ -358,15 +356,7 @@ export default class TopNavApplicationCustomizer
               response.json().then((data)=> {
 
                   console.log('list items for', listname, data);
-                  this.ajaxCounter--;
-                  this.MegaMenuListData = data.value;
-                  if (this.ajaxCounter == 0) {
-                    resolve();
-                  }
-                  else{
-                    console.error('could not get list')
-                  }
-
+                  resolve(data.value);
               });
           });
     });
