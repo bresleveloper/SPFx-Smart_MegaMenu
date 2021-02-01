@@ -50,6 +50,13 @@ export default class TopNavApplicationCustomizer
     };
     console.log('SmartMegaMenu onInit 1.0')
 
+    //id="spSiteHeader"
+    const head: any = document.getElementsByTagName("head")[0] || document.documentElement;
+    let customStyle: HTMLStyleElement = document.createElement("style");
+    customStyle.innerHTML = `#spSiteHeader,#spCommandBar{display:none}`
+    head.insertAdjacentElement("beforeEnd", customStyle);
+
+
     this.getSettings().then(()=>{
       console.log('getSettings resolved');
 
@@ -90,10 +97,9 @@ export default class TopNavApplicationCustomizer
         }
         resolve();
       });
-      resolve();
       //list not ok
-      reject();
-      console.error("i dont have a guid")
+      //reject();
+      //console.error("i dont have a guid")
     });
   }
 
